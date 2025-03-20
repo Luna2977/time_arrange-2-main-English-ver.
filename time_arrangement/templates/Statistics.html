@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        /* 统计页面布局 */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .completed-tasks {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .completed-task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .completed-task-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .completed-task-list li:last-child {
+            border-bottom: none;
+        }
+        .completed-time {
+            float: right;
+            color: #888;
+        }
+        /* 饼图区域 */
+        .chart-container {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        /* 饼图样式 */
+        #workRestChartToday,
+        #workRestChartWeekly {
+            max-width: 400px;
+            margin: 0 auto 20px; /* 增加底部间距 */
+            height: 40%;
+        }
+    </style>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+   
+        <!-- 统计页面内容 -->
+        <div class="content-wrapper">
+            <!-- 左侧：已完成的任务 -->
+            <div class="completed-tasks">
+                <h3>Weekly Completed Tasks</h3>
+                <ul class="completed-task-list" id="completedTaskList">
+                    {% if task %}
+                    <table>
+                        {% for tas in task %}
+                        <li data-id="{{tas.taskid}}">
+                            <span onclick="openTaskDetail('{{tas.task_d}}','taskDetailShow')">{{tas.taskname}}</span>
+                            <div class="complete-btn" onclick="completeTask(this)"></div>
+                        </li>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <div class="fun-conversion" id="funConversion">
+                        No completed tasks for the past 7 days!
+                    </div>
+                    {% endif %}
+                    <!-- 已完成的任务将动态添加到这里 -->
+                </ul>
+            </div>
+
+            <!-- 右侧：饼图区域 -->
+            <div class="chart-container">
+                <h3>Work & Rest Time (Today)</h3>
+                <canvas id="workRestChartToday"></canvas>
+
+                <h3>Work & Rest Time (Weekly)</h3>
+                <canvas id="workRestChartWeekly"></canvas>
+            </div>
+        </div>
+
+    <script>
+
+        // 绘制今日工作/休息时间饼图
+        function renderWorkRestChartToday() {
+            const ctx = document.getElementById('workRestChartToday').getContext('2d');
+            var worktime='{{daily_res}}';
+            let d_work=100-Number(worktime)
+            let d_rest=Number(worktime)
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Work Time', 'Rest Time'],
+                    datasets: [{
+                        data: [100-Number(worktime), Number(worktime)], // 今日工作时间和休息时间的比例
+                        backgroundColor: ['#ff69b4', '#ffb6c1'], // 饼图颜色
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            enabled: true,
+                        }
+                    }
+                }
+            });
+        }
+
+        // 绘制每周工作/休息时间饼图
+        function renderWorkRestChartWeekly() {
+            var worktime='{{weekly_res}}';
+            const ctx = document.getElementById('workRestChartWeekly').getContext('2d');
+            let work=100-Number(worktime)
+            let rest=Number(worktime)
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [`Work Time: ${work} %`, `Rest Time: ${rest} %`],
+                    datasets: [{
+                        data: [work, rest], // 每周工作时间和休息时间的比例
+                        backgroundColor: ['#ff69b4', '#ffb6c1'], // 饼图颜色
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            enabled: true,
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初始化页面
+        function initStatisticPage() {
+            // loadCompletedTasks();
+            renderWorkRestChartToday();
+            renderWorkRestChartWeekly();
+        }
+
+        // 页面加载时初始化
+        window.onload = initStatisticPage;
+    </script>
+</body>
+</html>

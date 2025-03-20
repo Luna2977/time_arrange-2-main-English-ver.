@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown with LocalStorage</title>
+</head>
+<body>
+
+    <h1>Countdown</h1>
+    <div id="countdown">Time remaining: 10 seconds</div>
+
+    <script>
+        // 尝试从 localStorage 获取剩余的倒计时时间
+        let countdown = parseInt(localStorage.getItem('countdownTime')) || 50;  // 如果没有存储时间，则默认10秒
+
+        const countdownElement = document.getElementById('countdown');
+
+        // 更新倒计时并显示
+        function updateCountdown() {
+            countdownElement.textContent = "Time remaining: " + countdown + " seconds";
+            countdown--;
+
+            // 如果倒计时结束
+            if (countdown < 0) {
+                clearInterval(interval);
+                alert("Time's up!");
+            } else {
+                // 保存倒计时状态到 localStorage
+                localStorage.setItem('countdownTime', countdown);
+            }
+        }
+
+        // 每秒更新倒计时
+        const interval = setInterval(updateCountdown, 1000);
+
+        // 当页面离开时保存当前倒计时状态
+        window.addEventListener('beforeunload', function () {
+            localStorage.setItem('countdownTime', countdown);
+        });
+
+        // 如果重新加载页面，倒计时从之前的时间开始
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('countdownTime')) {
+                countdown = parseInt(localStorage.getItem('countdownTime'));
+                updateCountdown();
+            }
+        });
+    </script>
+
+</body>
+</html>

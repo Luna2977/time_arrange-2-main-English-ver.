@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Count Down</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .task-section {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .task-section h3 {
+            margin-top: 0;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+        .countdown-section {
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .countdown-section h3 {
+            margin-top: 0;
+        }
+        .fun-conversion {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .countdown-timer {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .countdown-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: hsla(328, 100%, 54%, 0.51);
+            color: white;
+        }
+        .countdown-buttons button:hover {
+            background-color: hsl(288, 83%, 77%);
+        }
+    </style>
+</head>
+<body>
+    
+        <div class="content-wrapper">
+            <div class="task-section">
+                <h3>Today's To-do List</h3>
+                <ul class="task-list">
+                    {% if task %}
+                    <table>
+                        {% for tas in task %}
+                        <li data-id="{{tas.taskid}}">
+                            <span onclick="openTaskDetail('{{tas.task_d}}','taskDetailShow')">{{tas.taskname}}</span>
+                            <div class="complete-btn" onclick="completeTask(this)"></div>
+                        </li>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <div class="fun-conversion" id="funConversion0">
+                        No tasks for today!
+                    </div>
+                    {% endif %}
+                    
+                </ul>
+            </div>
+
+            <div class="countdown-section">
+                <h3>Countdown</h3>
+                <div class="fun-conversion" id="funConversion">
+                    listen 5 songs, then get off work!
+                </div>
+                <div class="countdown-timer" id="countdownTimer">
+                    00:00
+                </div>
+                
+                <!-- 新增的60分钟倒计时 -->
+                <div class="fun-conversion" id="funConversion2" style="margin-top: 30px;">
+                    Let's take a break after:
+                </div>
+                <div class="countdown-timer" id="countdownTimer2">
+                    00:00
+                </div>
+                <!-- <div class="countdown-buttons">
+                    <button onclick="togglePauseRestart()">Pause/Continue</button>
+                </div> -->
+                <div class="countdown-buttons">
+                    <button id='pause' onclick="togglePauseRestart()" style="display: none;">Pause/Continue</button>
+                    <button id="restartButton" onclick="restartCountdown()" style="display: none;">Restart</button> <!-- 隐藏的 Restart 按钮 -->
+                    <button id="startButton" onclick="startCountdown()">Start</button> <!-- start 按钮 -->
+                </div>
+                
+            </div>
+        </div>
+
+    <script>
+
+
+        // 25分钟倒计时逻辑
+        var durations='{{duration}}';
+        var endtime='{{endtime}}';
+        var worktime='{{worktime}}';
+        var isWorktime='{{isWorktime}}';
+
+        let nowtime = 0;
+        // let timeLeft = 0; // 25分钟
+
+        const timerElement = document.getElementById('countdownTimer');
+        const funConversionElement = document.getElementById('funConversion');
+
+        const timerElement2 = document.getElementById('countdownTimer2');
+        const funConversion2 = document.getElementById('funConversion2');
+        const restartButton = document.getElementById('restartButton'); // 获取 Restart 按钮
+        const startButton = document.getElementById('startButton'); // 获取 start 按钮
+        const pauseButton = document.getElementById('pause'); // 获取 start 按钮
+
+        function updateTimer() {
+            if (worktime==='None'){
+                timerElement.textContent = '*^o^*';
+                funConversionElement.textContent = 'Please set your worktime!';
+            }
+            else if (durations==='None'){
+                funConversion2.textContent = 'Please set an alarm!'
+                timerElement2.textContent = '*^o^*';
+            }
+            else if(isWorktime==='False'){
+                startButton.style.display = 'none';
+                funConversionElement.textContent = 'Not working time!';
+                timerElement.textContent = '(՞• •՞) ';
+                funConversion2.textContent = 'Not working time!'
+                timerElement2.textContent = '(՞• •՞) ';
+            }
+            else{
+                // 将秒转换为分钟和秒
+                nowtime = Date.now();
+                // 计算时间戳差值（单位：毫秒）
+                const timeDifferenceInMilliseconds = (Number(endtime) - Number(nowtime)/1000);
+
+                // 将毫秒转换为秒
+                let timeLeft = timeDifferenceInMilliseconds;
+                const minutes = Math.floor(timeLeft / 60);  // 计算分钟数
+                const seconds = Math.floor(timeLeft % 60);  // 计算剩余的秒数
+                // const minutes = Math.floor(timeLeft / 60);
+                // const seconds = timeLeft % 60;
+                const songs = Math.floor((timeLeft / 180)+1); // 假设一首歌3分钟
+                funConversionElement.textContent = `Listen ${songs} songs, then enjoy your off-duty time!`;
+
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                // timerElement.textContent = `${}`;
+                if (timeLeft > 0) {
+                    timeLeft--;
+                } else {
+                    clearInterval(timerInterval);
+                    alert("Time to get off work! ");
+                }
+            }
+                
+        }
+        // // 趣味换算逻辑
+        // function updateFunConversion() {
+        //     if (worktime==='None'){
+                
+        //     }
+        //     else if(isWorktime==='False'){
+                
+        //     }
+        //     else{
+                
+        //     }
+        // }
+
+        const timerInterval = setInterval(() => {
+            updateTimer();
+            // updateFunConversion();
+        }, 1000);
+        
+        // 新增的60分钟倒计时逻
+
+        let timeLeft2 = Number(durations)*60; // 60分钟（3600秒）
+        let timerInterval2;
+        let isPaused = false; // 是否暂停
+        let startTimestamp = 0; // 存储倒计时开始的时间戳
+        let endTimestamp = 0; // 存储倒计时结束的时间戳
+        let restartTimestamp = 0;
+
+        function startCountdown() {
+            startTimestamp = Date.now();
+
+            sendTimestampToBackend('start', startTimestamp); // 发送开始时间戳到后端
+
+            timerInterval2 = setInterval(() => {
+                if (!isPaused) {
+                    updateTimer2();
+                }
+            }, 1000);
+
+            startButton.style.display = 'none';
+            pauseButton.style.display = 'inline-block';
+        }
+
+        function updateTimer2() {
+            
+            // startButton.style.display = 'inline-block';
+            const minutes = Math.floor(timeLeft2 / 60);
+            const seconds = timeLeft2 % 60;
+            timerElement2.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (timeLeft2 > 0) {
+                timeLeft2--;
+            } else {
+                clearInterval(timerInterval2);
+                endTimestamp = Date.now(); // 获取倒计时结束的时间戳
+
+                sendTimestampToBackend('end', endTimestamp); // 发送结束时间戳到后端
+                pauseButton.style.display = 'none';
+                restartButton.style.display = 'inline-block'; // 显示 Restart 按钮
+                
+                alert("Time to have a break!");
+            }
+        }
+
+        // 新增的Pause/Restart按钮功能
+        function togglePauseRestart() {
+            if (isPaused) {
+                // 如果当前是暂停状态，则重置并重启倒计时
+                isPaused = false;
+                timeLeft2; // 重置为60分钟
+                // timerElement2.textContent = "60:00"; // 更新显示
+                // alert("Countdown restarted from 60 minutes!");
+            } else {
+                // 如果当前是运行状态，则暂停倒计时
+                isPaused = true;
+                alert("Countdown paused!");
+            }
+        }
+
+        function restartCountdown() {
+            // 给后端发送一个新的时间戳
+            restartTimestamp = Date.now();
+            let timeDifference = (restartTimestamp - endTimestamp) / 1000;  // 转换为秒
+
+            // sendTimestampToBackend('restart', restartTimestamp); // 发送开始时间戳到后端
+            sendTimestampToBackend('timedif', timeDifference); // 发送开始时间戳到后端
+
+            // 重置倒计时为 60 分钟
+            timeLeft2 = Number(durations) * 60;
+            restartButton.style.display = 'none'; // 隐藏 Restart 按钮
+            startCountdown(); // 重新开始倒计时
+            alert("Countdown restarted!");
+        }
+
+        function sendTimestampToBackend(status, timestamp){
+            // const timestamp = Date.now(); // 获取当前时间戳（毫秒）
+
+            // 这里你可以使用 `fetch` 或其他 AJAX 请求将时间戳发送到后端
+            fetch('/get_timestamp/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' 
+                },
+                body: JSON.stringify({ status: status, timestamp: timestamp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Timestamp sent to backend:', data);
+            })
+            .catch(error => {
+                console.error('Error sending timestamp to backend:', error);
+            });
+        }
+
+        // 初始化时启动60分钟倒计时
+        // startCountdown();
+    </script>
+</body>
+</html>

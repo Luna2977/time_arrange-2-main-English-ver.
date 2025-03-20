@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        
+        /* 设置页面布局 */
+        .settings-container {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .settings-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .settings-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .settings-list li:last-child {
+            border-bottom: none;
+        }
+        .settings-list li:hover {
+            background-color: #f5f5f5;
+        }
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+        }
+        .modal-content label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal-content button {
+            padding: 5px 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #ff69b4;
+            color: white;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background-color: #ff1493;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+        <!-- 设置页面内容 -->
+        <div class="settings-container">
+            <h3>Settings</h3>
+            <ul class="settings-list">
+                <li onclick="openUserAccountModal()">User's Account</li>
+                <li onclick="openAlarmModal()">Set an Alarm</li>
+                <li onclick="openScheduleModal()">Schedule</li>
+            </ul>
+
+            <h3>Your Schedule</h3>
+            {% if periods %}
+                <ul>
+                    {% for item in periods %}
+                        <li>On-duty: {{ item.start_time }} - Off-duty: {{ item.end_time }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No schedule for today.</p>
+            {% endif %}
+
+        </div>
+
+        <!-- User's Account 弹窗 -->
+        <div class="modal" id="userAccountModal">
+            <div class="modal-content">
+                <h3>User's Account</h3>
+                <form method="POST" action="{% url 'set_account' %}" id="set_account">
+                    {% csrf_token %}
+                    <!-- <label for="userPhoto">Photo:</label>
+                    <input type="file" id="userPhoto" accept="image/*"> -->
+                    <label for="userName">Name:</label>
+                    <input type="text" id="userName" name="userName" placeholder="Enter your name">
+                    <label for="userPassword">Password:</label>
+                    <input type="password" id="userPassword" name="userPassword" placeholder="Enter new password">
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="closeUserAccountModal()">Close</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Set an Alarm 弹窗 -->
+        <div class="modal" id="alarmModal">
+            <div class="modal-content">
+                <h3>Set an Alarm</h3>
+                <form method="POST" action="{% url 'set_alarm' %}" id="set_alarm">
+                    {% csrf_token %}
+                    <label for="alarmInterval">Remind me to take a break every:</label>
+                    <input type="number" name="alarmInterval" id="alarmInterval" placeholder="Enter minutes" min="1">
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="closeAlarmModal()">Close</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Schedule 弹窗 -->
+        <div class="modal" id="scheduleModal">
+            <div class="modal-content">
+                <h3>Schedule</h3>
+                <form method="POST" action="{% url 'set_schedule' %}" id="set_schedule">
+                    {% csrf_token %}
+                    <label for="onDutyTime">On-duty Time:</label>
+                    <input type="time" name="onDutyTime" id="onDutyTime">
+                    <label for="offDutyTime">Off-duty Time:</label>
+                    <input type="time" name="offDutyTime" id="offDutyTime">
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="closeScheduleModal()">Close</button>
+                </form>
+            </div>
+        </div>
+
+    <script>
+        function showError(message) {
+            // 显示弹出提示框
+            alert(message);
+
+            // 跳转到另一个页面（可以替换为你需要的URL）
+            // window.location.href = "";  // 替换为目标页面的 URL
+        }
+
+          // 获取后端传递的重定向 URL
+        var redirectUrl = "{{ redirect_url }}"; // 后端传递的 URL
+        if (redirectUrl != 'None'){
+        // // 向父页面发送消息，通知父页面进行重定向
+            parent.postMessage(redirectUrl, "*"); 
+        }
+
+        // 打开 User's Account 弹窗
+        function openUserAccountModal() {
+            const modal = document.getElementById('userAccountModal');
+            modal.style.display = 'flex';
+        }
+
+        // 关闭 User's Account 弹窗
+        function closeUserAccountModal() {
+            const modal = document.getElementById('userAccountModal');
+            modal.style.display = 'none';
+        }
+
+        // 打开 Set an Alarm 弹窗
+        function openAlarmModal() {
+            const modal = document.getElementById('alarmModal');
+            modal.style.display = 'flex';
+        }
+
+        // 关闭 Set an Alarm 弹窗
+        function closeAlarmModal() {
+            const modal = document.getElementById('alarmModal');
+            modal.style.display = 'none';
+        }
+
+        // 打开 Schedule 弹窗
+        function openScheduleModal() {
+            const modal = document.getElementById('scheduleModal');
+            modal.style.display = 'flex';
+        }
+
+        // 关闭 Schedule 弹窗
+        function closeScheduleModal() {
+            const modal = document.getElementById('scheduleModal');
+            modal.style.display = 'none';
+        }
+
+        // 保存 Schedule 设置
+        function saveSchedule() {
+            const onDutyTime = document.getElementById('onDutyTime').value;
+            const offDutyTime = document.getElementById('offDutyTime').value;
+
+            // 这里可以实现保存逻辑，例如设置上下班时间
+            alert(`Schedule saved: On-duty Time - ${onDutyTime}, Off-duty Time - ${offDutyTime}`);
+            closeScheduleModal();
+        }
+    </script>
+
+    {% if msg %}
+    <script>
+        // 如果后端传递了错误信息，显示弹窗
+        showError("{{ msg }}");
+    </script>
+    {% endif %}
+</body>
+</html>

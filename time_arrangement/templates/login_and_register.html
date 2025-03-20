@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        .app-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .app-title h1 {
+            font-size: 24px;
+            color: #ff69b4;
+            margin: 0;
+        }
+        .app-title p {
+            font-size: 14px;
+            color: #333;
+            margin: 5px 0 0;
+        }
+        .auth-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .auth-container h2 {
+            margin-top: 0;
+            color: #ff69b4;
+        }
+        .auth-container label {
+            display: block;
+            margin: 10px 0 5px;
+            text-align: left;
+            color: #333;
+        }
+        .auth-container input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .auth-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .auth-container button:hover {
+            background-color: #ff1493;
+        }
+        .auth-container .switch-auth {
+            margin-top: 10px;
+            color: #333;
+        }
+        .auth-container .switch-auth a {
+            color: #ff69b4;
+            text-decoration: none;
+        }
+        .auth-container .switch-auth a:hover {
+            text-decoration: underline;
+        }
+        .avatar-upload {
+            margin-bottom: 10px;
+        }
+        .avatar-upload img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .avatar-upload input[type="file"] {
+            display: none;
+        }
+        .avatar-upload label {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .avatar-upload label:hover {
+            background-color: #ff1493;
+        }
+    </style>
+</head>
+<body>
+    <!-- 应用标题 -->
+    <div class="app-title">
+        <h1>Slacking off Progress Calculator</h1>
+        <p>A smart app that helps you plan your schedule, remind breaks and calculate time share.</p>
+    </div>
+
+    <script>
+        // 用于显示错误信息的弹窗
+        function showError(message) {
+            alert(message);
+        }
+    </script>
+
+    <!-- 登录页面 -->
+    <div class="auth-container" id="loginContainer">
+        <h2>Login</h2>
+        <form method="POST" action="{% url 'login_check' %}" id="loginForm">
+            {% csrf_token %}
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" name="loginUsername" placeholder="Enter your user name" required>
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="loginPassword" placeholder="Enter your password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="switch-auth">
+            Don't have an account? <a href="#" onclick="switchToRegister()">Register</a>
+        </div>
+    </div>
+
+    <!-- 注册页面 -->
+    <div class="auth-container" id="registerContainer" style="display: none;">
+        <h2>Register</h2>
+        <form method="POST" action="{% url 'register' %}" id="registerForm">
+            {% csrf_token %}
+            <label for="registerUsername">Username:</label>
+            <input type="text" name="registerUsername" id="registerUsername" placeholder="Enter your username" required>
+            <label for="registerPassword">Password:</label>
+            <input type="password" name="registerPassword" id="registerPassword" placeholder="Enter your password" required>
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your password" required>
+            <button type="submit">Register</button>
+        </form>
+        <div class="switch-auth">
+            Already have an account? <a href="#" onclick="switchToLogin()">Login</a>
+        </div>
+    </div>
+
+    {% if login_error_message %}
+    <script>
+        // 如果后端传递了错误信息，显示弹窗
+        showError("{{ login_error_message }}");
+    </script>
+    {% endif %}
+
+    <script>
+        // 切换到注册页面
+        function switchToRegister() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('registerContainer').style.display = 'block';
+        }
+
+        // 切换到登录页面
+        function switchToLogin() {
+            document.getElementById('registerContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+        }
+
+    </script>
+
+    {% if register_error_message %}
+    <script>
+        // 如果后端传递了错误信息，显示弹窗
+        showError("{{ register_error_message }}");
+        switchToRegister() 
+    </script>
+    {% endif %}
+</body>
+</html>

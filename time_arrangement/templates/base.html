@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #ffb6c1;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar nav button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .sidebar nav button:hover {
+            background-color: hsl(288, 83%, 77%);
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        iframe {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+ 
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2 id="currentDate">
+            <span id="date">{{date}}</span>
+            <span id="dayOfWeek">{{weekday}}</span>
+        </h2>
+        <nav>
+            <button onclick="loadPage('settings')">Settings</button>
+            <button onclick="loadPage('count_down')">Today</button>
+            <button onclick="loadPage('task_details')">Task Detail</button>
+            <button onclick="loadPage('statistics')">Statistics</button>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <iframe id="content-frame" src="" frameborder="0" id="iframe1" name="iframe1"></iframe>
+        <!-- <iframe src="./iframe1.html" frameborder="1" id="iframe1" width="600px" height="600px" name="iframe1"></iframe> -->
+
+    </div>
+
+    <script>
+        function loadPage(page) {
+            let iframe = document.getElementById('content-frame');
+            // 设置 iframe 的 src 属性，加载不同的页面
+            iframe.src ='/'+ page ;
+            iframe.contentWindow
+        }
+         // 监听来自 iframe 的消息
+        window.addEventListener('message', function(event) {
+            var redirectUrl = event.data;
+                if (redirectUrl) {
+                    // 重定向父页面
+                    window.location.href = redirectUrl;
+                }
+            // 确保消息来源是信任的域
+            // if (event.origin === '/set_account/') { // 请替换为 iframe 的实际来源域
+                
+            // }
+        });
+
+    </script>
+
+</body>
+</html>
