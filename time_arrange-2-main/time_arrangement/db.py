@@ -4,7 +4,7 @@ import os
 import pymysql
 
 MYSQLDB = {
-    'time_arrange': {
+    'time_arrangement': {
         'host': 'localhost',
         'user': 'root',
         'password': '123456',

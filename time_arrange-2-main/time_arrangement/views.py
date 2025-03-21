@@ -30,10 +30,15 @@ def get_current_time():
     return current_time,current_date,current_min,weekday
 
 def add_all(a):
-    res=0
+    if a is None:  # How to enter None，Return 0
+        return 0
+
+    res = 0
     for row in a:
-        res+=int(row[0])
+        if row and row[0] is not None:  # Ensure row[0] is not None
+            res += int(row[0])
     return res
+
 
 def generate_user_id():
     """generate random user id by register time"""
@@ -127,9 +132,17 @@ def statistics_page(request:HttpRequest):
     d_exactworktime=DB_TOOLS().get_daily_totalworktime_by_userid(userid,today)
 
     # d_total=add_all(d_totalworktime)
-    d_exact=add_all(d_exactworktime)
-    # print(d_totalworktime,d_exactworktime)
-    daily_res=(int(d_exact)/(60*int(d_totalworktime)))*100
+    # Calculation d_totalworktime sum d_exactworktime sum
+    d_totalworktime = add_all(d_totalworktime)
+    d_exactworktime = add_all(d_exactworktime)
+
+    # No guarantee amount None，Exemption from avoidance 0
+    d_totalworktime = int(d_totalworktime) if d_totalworktime not in [None, 0] else 1  # Avoid ZeroDivisionError
+    d_exactworktime = int(d_exactworktime) if d_exactworktime is not None else 0  # Avoiding TypeError
+
+    # 计算 daily_res
+    daily_res = (d_exactworktime / (60 * d_totalworktime)) * 100
+
 
     w_totalworktime=DB_TOOLS().get_weekly_worktime_by_userid(userid,today,one_week_ago)
     w_exactworktime=DB_TOOLS().get_weekly_totalworktime_by_userid(userid,today,one_week_ago)
@@ -184,7 +197,7 @@ def test(request:HttpRequest):
     #     user_age = request.POST.get('user_age')
         
     #     # Processing data (here is just a simple example of returning data)
-    #     return HttpResponse(f"收到的数据: 用户名 - {user_name}, 年龄 - {user_age}")
+    #     return HttpResponse(f"Data obtained: User name - {user_name}, age - {user_age}")
     
     # If it is a GET request, render the form page
     return render(request, '1.html')
