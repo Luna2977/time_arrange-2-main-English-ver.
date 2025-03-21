@@ -89,7 +89,7 @@ def count_down_page(request:HttpRequest):
     today=get_current_time()[1]
     duration=DB_TOOLS().get_alarm_duration_by_userid(userid)
     worktime=DB_TOOLS().get_daily_worktime_by_userid(userid,today)
-    endtime=DB_TOOLS().get_daily_endtime_by_userid(userid,today)
+    #endtime=DB_TOOLS().get_daily_endtime_by_userid(userid,today)
 
     isWorktime=is_worktime(userid,today)[0]
     if isWorktime:
