@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Party Schedule Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #ffb6c1;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar nav button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .sidebar nav button:hover {
+            background-color: hsl(288, 83%, 77%);
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .user-avatar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .task-section {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .task-section h3 {
+            margin-top: 0;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+        .countdown-section {
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .countdown-section h3 {
+            margin-top: 0;
+        }
+        .fun-conversion {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .countdown-timer {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .countdown-buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: hsla(328, 100%, 54%, 0.51);
+            color: white;
+        }
+        .countdown-buttons button:hover {
+            background-color: hsl(288, 83%, 77%);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2 id="currentDate">
+            <span id="date">12/03/2025</span>
+            <span id="dayOfWeek">Wednesday</span>
+        </h2>
+        <nav>
+            <button>Today</button>
+            <button>Task Detail</button>
+            <button>Statistics</button>
+            <button>Settings</button>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="user-avatar">U</div>
+        <div class="content-wrapper">
+            <div class="task-section">
+                <h3>Today's To-do List</h3>
+                <ul class="task-list">
+                    <li>Task 1</li>
+                    <li>Task 2</li>
+                    <li>Task 3</li>
+                </ul>
+            </div>
+
+            <div class="countdown-section">
+                <h3>Countdown</h3>
+                <div class="fun-conversion" id="funConversion">
+                    listen 5 songs, then:
+                </div>
+                <div class="countdown-timer" id="countdownTimer">
+                    25:00
+                </div>
+                
+                <!-- 新增的60分钟倒计时 -->
+                <div class="fun-conversion" id="funConversion2" style="margin-top: 30px;">
+                    Let's take a break after:
+                </div>
+                <div class="countdown-timer" id="countdownTimer2">
+                    60:00
+                </div>
+                <div class="countdown-buttons">
+                    <button onclick="togglePauseRestart()">Pause/Restart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set the current date and day of the week
+        const dateElement = document.getElementById('date');
+        const dayOfWeekElement = document.getElementById('dayOfWeek');
+        const date = new Date(2025, 2, 12); // 2025年3月12日
+
+        // Formatting Dates
+        const optionsDate = { year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = date.toLocaleDateString('en-US', optionsDate);
+
+        // Format the day of the week (English)
+        const optionsDay = { weekday: 'long' };
+        dayOfWeekElement.textContent = date.toLocaleDateString('en-US', optionsDay);
+
+
+        // 25-minute countdown logic
+        let timeLeft = 1500; // 25分钟
+        const timerElement = document.getElementById('countdownTimer');
+        const funConversionElement = document.getElementById('funConversion');
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (timeLeft > 0) {
+                timeLeft--;
+            } else {
+                clearInterval(timerInterval);
+                alert("Time's up！");
+            }
+        }
+        // Interesting conversion logic
+        function updateFunConversion() {
+            const songs = Math.floor(timeLeft / 180); // Assume a song is 3 minutes long
+            funConversionElement.textContent = `Listen ${songs} songs, then enjoy your off-duty time!`;
+        }
+
+        const timerInterval = setInterval(() => {
+            updateTimer();
+            updateFunConversion();
+        }, 1000);
+        
+        // New 60-minute countdown logic
+        let timeLeft2 = 3600; // 60 minutes (3600 seconds)
+        const timerElement2 = document.getElementById('countdownTimer2');
+        let timerInterval2;
+        let isPaused = false; // Whether to pause
+
+        function startCountdown() {
+            timerInterval2 = setInterval(() => {
+                if (!isPaused) {
+                    updateTimer2();
+                }
+            }, 1000);
+        }
+
+        function updateTimer2() {
+            const minutes = Math.floor(timeLeft2 / 60);
+            const seconds = timeLeft2 % 60;
+            timerElement2.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (timeLeft2 > 0) {
+                timeLeft2--;
+            } else {
+                clearInterval(timerInterval2);
+                alert("Time's up for the 60-minute countdown!");
+            }
+        }
+
+        // New Pause/Restart button function
+        function togglePauseRestart() {
+            if (isPaused) {
+                // If the current state is paused, reset and restart the countdown
+                isPaused = false;
+                timeLeft2 = 3600; // Reset to 60 minutes
+                timerElement2.textContent = "60:00"; // Update Display
+                alert("Countdown restarted from 60 minutes!");
+            } else {
+                // If the current state is running, the countdown will be paused
+                isPaused = true;
+                alert("Countdown paused!");
+            }
+        }
+
+        // Start a 60-minute countdown at initialization
+        startCountdown();
+    </script>
+</body>
+</html>

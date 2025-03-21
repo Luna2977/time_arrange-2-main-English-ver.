@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown with LocalStorage</title>
+</head>
+<body>
+
+    <h1>Countdown</h1>
+    <div id="countdown">Time remaining: 10 seconds</div>
+
+    <script>
+        // Try getting the remaining countdown time from localStorage
+        let countdown = parseInt(localStorage.getItem('countdownTime')) || 50;  // 如果没有存储时间，则默认10秒
+
+        const countdownElement = document.getElementById('countdown');
+
+        // Update countdown and display
+        function updateCountdown() {
+            countdownElement.textContent = "Time remaining: " + countdown + " seconds";
+            countdown--;
+
+            // If the countdown ends
+            if (countdown < 0) {
+                clearInterval(interval);
+                alert("Time's up!");
+            } else {
+                // Save countdown status to localStorage
+                localStorage.setItem('countdownTime', countdown);
+            }
+        }
+
+        // Update countdown every second
+        const interval = setInterval(updateCountdown, 1000);
+
+        // Save the current countdown status when leaving the page
+        window.addEventListener('beforeunload', function () {
+            localStorage.setItem('countdownTime', countdown);
+        });
+
+        // If you reload the page, the countdown starts from the previous time
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('countdownTime')) {
+                countdown = parseInt(localStorage.getItem('countdownTime'));
+                updateCountdown();
+            }
+        });
+    </script>
+
+</body>
+</html>

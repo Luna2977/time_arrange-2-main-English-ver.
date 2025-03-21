@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #fff0f5;
+        }
+       
+        /* Task bar and task details area */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .task-section {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .task-section h3 {
+            margin-top: 0;
+            color: hsl(0, 0%, 0%); 
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: grab;
+        }
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+        .task-list li.completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .task-list li .complete-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ff69b4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .task-list li .complete-btn.completed {
+            background-color: #ff69b4;
+        }
+        /* Add Task Button */
+        .add-task-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .add-task-btn:hover {
+            background-color: #ff1493;
+        }
+        /* Task details pop-up */
+        .task-detail-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .task-detail-modal h3 {
+            margin-top: 0;
+            color: #8b0000; /* Dark red text */
+            text-align: center;
+        }
+        .task-detail-modal input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .task-detail-modal textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+        .task-detail-modal input[type="date"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .task-detail-modal button {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #ff69b4;
+            color: white;
+        }
+        .task-detail-modal button:hover {
+            background-color: #ff1493;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Right content area -->
+    <!-- <div class="main-content"> -->
+
+        <!-- Task bar and task details area -->
+        <div class="content-wrapper">
+            <!-- task bar -->
+            <div class="task-section">
+                <h3>Tasks List</h3>
+                <ul class="task-list" id="taskList">
+                    {% if task %}
+                    <table>
+                        {% for tas in task %}
+                        <li data-id="{{tas.taskid}}" class="{% if tas.status == '1' %} completed {% endif %}">
+                            <span onclick="openTaskDetail('{{tas.task_id}}','taskDetailShow','{{tas.taskname}}','{{tas.taskdetail}}','{{tas.taskddl}}')">{{tas.taskname}}</span>
+                            {% if tas.status == '1' %} 
+                                <div class="complete-btn completed" id="complete"></div>
+                            {% else %}
+                                <div class="complete-btn" id="complete" onclick="completeTask(this)"></div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <div class="fun-conversion" id="funConversion">
+                        Please create tasks!
+                    </div>
+                    {% endif %}
+                    
+                </ul>
+                <!-- Place the "Add Task" button below the task list -->
+                <button class="add-task-btn" onclick="openAddDetail()">Add Tasks</button>
+            </div>
+
+            <!-- add task -->
+            <div class="task-detail-modal" id="taskDetailModal">
+                <h3>Task Details</h3>
+                <form method="POST" action="{% url 'add_tasks' %}" id="add_tasks">
+                    {% csrf_token %}
+                    <input type="text" name="taskName" id="taskName" placeholder="Task Name" maxlength="50">
+                    <textarea name="taskDetail" id="taskDetail" placeholder="Task Content" maxlength="200ç"></textarea>
+                    <input type="date" name="taskDeadline" id="taskDeadline">
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="closeTaskDetail('taskDetailModal','taskName','taskDetail','taskDeadline')">Close</button>
+                </form>
+            </div>
+
+            <!-- task details -->
+            <div class="task-detail-modal" id="taskDetailShow">
+                <h3>Task Details</h3>
+                    <input type="text" name="taskName1" id="taskName1" placeholder="Task Name" readonly>
+                    <textarea name="taskDetail1" id="taskDetail1" placeholder="Task Content" readonly></textarea>
+                    <input type="date" name="taskDeadline1" id="taskDeadline1" readonly>
+                    <button onclick="closeTaskDetail('taskDetailShow','taskName1','taskDetail1','taskDeadline1')">Close</button>
+            </div>
+        </div>
+    <!-- </div> -->
+
+    <script>
+
+
+        // Complete the task
+        function completeTask(button) {
+            const li = button.parentElement;
+            li.classList.toggle('completed');
+            button.classList.toggle('completed');
+            // const li = button.parentElement;
+            const taskId = li.getAttribute('data-id'); // Get the ID of the task
+            
+            // Toggle the completion status of a task
+            // li.classList.toggle('completed');
+            // button.classList.toggle('completed');
+
+            // Use fetch to send a task completion request to the backend
+            fetch('/upadate_task_status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Adding CSRF token
+                },
+                body: JSON.stringify({ task_id: taskId }) // Send the task ID to the backend
+            })
+            .then(response => response.json())
+            .then(data => {
+                // You can perform further operations based on the returned results here
+                console.log(data.message); // Display the message returned by the backend
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function openAddDetail() {
+            const modal = document.getElementById('taskDetailModal');
+            modal.style.display = 'flex';
+        }
+
+        // Open the task details pop-up window
+        function openTaskDetail(taskId,para,taskname,taskdetail,taskddl) {
+            const modal = document.getElementById(para);
+            const taskName = document.getElementById('taskName1');
+            const taskDetail = document.getElementById('taskDetail1');
+            const taskDeadline = document.getElementById('taskDeadline1');
+
+            // Simulation loading task details
+            const task = {
+                id: taskId,
+                name: taskname, // Default Task Name
+                detail: taskdetail,
+                deadline: taskddl
+            };
+
+            taskName.value = task.name;
+            taskDetail.value = task.detail;
+            taskDeadline.value = task.deadline;
+            modal.style.display = 'block';
+
+            // Save the current task ID
+            // modal.setAttribute('data-task-id', taskId);
+        }
+
+        // Close the task details pop-up window
+        function closeTaskDetail(para,name,detail,ddl) {
+            const modal = document.getElementById(para);
+            const taskName = document.getElementById(name);
+            const taskDetail = document.getElementById(detail);
+            const taskDeadline = document.getElementById(ddl);
+
+            taskName.value = '';
+            taskDetail.value = '';
+            taskDeadline.value = '';
+            modal.style.display = 'none';
+        }
+
+        // Drag and drop sorting function
+        const taskList = document.getElementById('taskList');
+        let draggedItem = null;
+
+        taskList.addEventListener('dragstart', (e) => {
+            draggedItem = e.target;
+            e.target.style.opacity = '0.5';
+        });
+
+        taskList.addEventListener('dragend', (e) => {
+            e.target.style.opacity = '1';
+        });
+
+        taskList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(taskList, e.clientY);
+            if (afterElement) {
+                taskList.insertBefore(draggedItem, afterElement);
+            } else {
+                taskList.appendChild(draggedItem);
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    </script>
+</body>
+</html>
