@@ -97,6 +97,9 @@ def count_down_page(request:HttpRequest):
     else:
         endtimestamp=0
 
+    if endtimestamp < 0:
+        endtimestamp = 0
+
     # print(isWorktime)
     # endtimestamp = switch_timestamp(endtime)
     # print("Timestamp:", endtimestamp)
